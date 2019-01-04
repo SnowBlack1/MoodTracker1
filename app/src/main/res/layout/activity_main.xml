@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/light_sage"
+    tools:context=".MainActivity"
+    android:id="@+id/main_layout">
+
+    <ImageView
+        android:id="@+id/smiley_img"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:layout_centerInParent="true"
+        android:src="@drawable/smiley_happy" />
+
+    <ImageButton
+        android:id="@+id/note_img"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="@dimen/button_margin"
+        android:layout_marginBottom="@dimen/button_margin"
+        android:background="@android:color/transparent"
+        android:src="@drawable/ic_note_add_black" />
+
+    <ImageButton
+        android:id="@+id/history_img"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:src="@drawable/ic_history_black"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="@dimen/button_margin"
+        android:layout_marginBottom="@dimen/button_margin"/>
+
+
+
+</RelativeLayout>
