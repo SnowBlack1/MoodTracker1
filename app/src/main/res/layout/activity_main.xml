@@ -20,8 +20,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginLeft="@dimen/button_margin"
-        android:layout_marginBottom="@dimen/button_margin"
+        android:layout_marginLeft="20dp"
+        android:layout_marginBottom="20dp"
         android:background="@android:color/transparent"
         android:src="@drawable/ic_note_add_black" />
 
@@ -33,8 +33,8 @@
         android:src="@drawable/ic_history_black"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginRight="@dimen/button_margin"
-        android:layout_marginBottom="@dimen/button_margin"/>
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="20dp"/>
 
 
 
