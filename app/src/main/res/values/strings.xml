@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">MoodTracker</string>
+
+    <string name="edit_text_hint">Votre commentaire</string>
+    <string name="note_dialog_title">Comment vous sentez-vous? </string>
+    <string name="note_dialog_ok">OK</string>
+    <string name="toast_confirm">C\'est bien enregistré!</string>
+    <string name="note_dialog_cancel">Annuler</string>
+    <string name="toast_cancel">Rien ne s\'est passé, tout va bien!</string>
 </resources>
