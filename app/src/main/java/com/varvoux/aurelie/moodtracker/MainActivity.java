@@ -1,15 +1,21 @@
 package com.varvoux.aurelie.moodtracker;
 
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Display;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -18,6 +24,8 @@ public class MainActivity extends AppCompatActivity {
     private RelativeLayout mainLayout;
     private MoodUI[] mMoodUIS;
     private GestureDetector mGestureDetector;
+    private SharedPreferences mPreferences;
+
 
     public int getCurrentSmileyPosition() {
         return currentSmileyPosition;
@@ -29,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mPreferences = getPreferences(MODE_PRIVATE);
 
         final ImageButton noteBtn = findViewById(R.id.note_img);
         smileyImg = findViewById(R.id.smiley_img);
@@ -52,12 +61,12 @@ public class MainActivity extends AppCompatActivity {
         mMoodUIS[3] = new MoodUI(R.color.light_sage, R.drawable.smiley_happy, 3);
         mMoodUIS[4] = new MoodUI(R.color.banana_yellow, R.drawable.smiley_super_happy, 4);
 
-        //noteBtn.setOnClickListener(new View.OnClickListener() {
-        //    @Override
-        //    public void onClick(View v) {
-        //        showNoteDialog();
-        //    }
-        //});
+        noteBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showNoteDialog();
+            }
+        });
 
         historyBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -100,16 +109,46 @@ public class MainActivity extends AppCompatActivity {
     public void onSwipeTop() {
         if (--currentSmileyPosition < 0) currentSmileyPosition = mMoodUIS.length - 1;
         displayMood();
-        //mCurrentMood.setPosition(3);
+
     }
 
     public void onSwipeBottom() {
         if (++currentSmileyPosition > mMoodUIS.length - 1) currentSmileyPosition = 0;
         displayMood();
-        //mCurrentMood.setPosition(3);
+
     }
     private void displayMood() {
         smileyImg.setImageResource(mMoodUIS[currentSmileyPosition].getSmileyResources());
         mainLayout.setBackgroundColor(getResources().getColor(mMoodUIS[currentSmileyPosition].getColorResources()));
     }
+
+    private void showNoteDialog (){
+
+        View parentView = getLayoutInflater().inflate(R.layout.note_comment_layout,null);
+        final EditText editText = parentView.findViewById(R.id.user_comment_input);
+        String lastComment = mPreferences.getString("userEntry","");
+        editText.setText(lastComment);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(parentView);
+        builder.setCancelable(false);
+        builder.setPositiveButton (R.string.note_dialog_ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Toast.makeText(MainActivity.this,editText.getText(), Toast.LENGTH_LONG).show();
+                mPreferences.edit().putString("userEntry",editText.getText().toString()).apply();
+
+
+            }
+        });
+        builder.setNegativeButton(R.string.note_dialog_cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Toast.makeText(MainActivity.this,R.string.toast_cancel,Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.show();
+    }
+
+
 }
