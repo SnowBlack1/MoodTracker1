@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.Display;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -17,6 +16,11 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -25,11 +29,9 @@ public class MainActivity extends AppCompatActivity {
     private MoodUI[] mMoodUIS;
     private GestureDetector mGestureDetector;
     private SharedPreferences mPreferences;
+    private MoodHistory mCurrentMood;
+    private Gson mGson = new Gson();
 
-
-    public int getCurrentSmileyPosition() {
-        return currentSmileyPosition;
-    }
     int currentSmileyPosition = 3;
 
     @SuppressLint("ClickableViewAccessibility")
@@ -109,7 +111,6 @@ public class MainActivity extends AppCompatActivity {
     public void onSwipeTop() {
         if (--currentSmileyPosition < 0) currentSmileyPosition = mMoodUIS.length - 1;
         displayMood();
-
     }
 
     public void onSwipeBottom() {
@@ -137,8 +138,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int which) {
                 Toast.makeText(MainActivity.this,editText.getText(), Toast.LENGTH_LONG).show();
                 mPreferences.edit().putString("userEntry",editText.getText().toString()).apply();
-
-
+                mCurrentMood.setUserComment(editText.getText().toString());
             }
         });
         builder.setNegativeButton(R.string.note_dialog_cancel, new DialogInterface.OnClickListener() {
@@ -150,5 +150,31 @@ public class MainActivity extends AppCompatActivity {
         builder.show();
     }
 
+    //isSameDay
 
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        long now = System.currentTimeMillis();
+        mCurrentMood.setDate(now);
+
+        String json = mGson.toJson(mCurrentMood);
+        mPreferences.edit().putString("currentMood",json).apply();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        String json = mPreferences.getString("currentMood","");
+        if (json != null && !json.equals("")){
+            Type type = new TypeToken<MoodHistory>(){}.getType();
+            mCurrentMood = mGson.fromJson(json,type);
+            //Toast.makeText(MainActivity.this,"Nombre de mood sauvegardé " + moodList.size(),Toast.LENGTH_SHORT).show();
+        }
+
+
+    }
 }
