@@ -1,4 +1,4 @@
-package com.varvoux.aurelie.moodtracker;
+package com.varvoux.aurelie.moodtracker.model;
 
 public class MoodUI {
     private int colorResources;

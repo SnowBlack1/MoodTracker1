@@ -1,9 +1,10 @@
-package com.varvoux.aurelie.moodtracker;
+package com.varvoux.aurelie.moodtracker.controller;
 
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -18,19 +19,25 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.varvoux.aurelie.moodtracker.R;
+import com.varvoux.aurelie.moodtracker.Utils.Utils;
+import com.varvoux.aurelie.moodtracker.model.MoodHistory;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Calendar;
 
 
 public class MainActivity extends AppCompatActivity {
 
     private ImageView smileyImg;
     private RelativeLayout mainLayout;
-    private MoodUI[] mMoodUIS;
     private GestureDetector mGestureDetector;
     private SharedPreferences mPreferences;
     private MoodHistory mCurrentMood;
     private Gson mGson = new Gson();
+    private ArrayList<MoodHistory> moodList = new ArrayList<>();
+
 
     int currentSmileyPosition = 3;
 
@@ -39,7 +46,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mPreferences = getPreferences(MODE_PRIVATE);
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mCurrentMood = new MoodHistory();
 
         final ImageButton noteBtn = findViewById(R.id.note_img);
         smileyImg = findViewById(R.id.smiley_img);
@@ -56,13 +64,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        mMoodUIS = new MoodUI[5];
-        mMoodUIS[0] = new MoodUI(R.color.faded_red, R.drawable.smiley_sad, 0);
-        mMoodUIS[1] = new MoodUI(R.color.warm_grey, R.drawable.smiley_disappointed, 1);
-        mMoodUIS[2] = new MoodUI(R.color.cornflower_blue_65, R.drawable.smiley_normal, 2);
-        mMoodUIS[3] = new MoodUI(R.color.light_sage, R.drawable.smiley_happy, 3);
-        mMoodUIS[4] = new MoodUI(R.color.banana_yellow, R.drawable.smiley_super_happy, 4);
-
         noteBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -73,12 +74,13 @@ public class MainActivity extends AppCompatActivity {
         historyBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent HistoryActivity = new Intent(MainActivity.this, com.varvoux.aurelie.moodtracker.HistoryActivity.class);
+                Intent HistoryActivity = new Intent(MainActivity.this, com.varvoux.aurelie.moodtracker.controller.HistoryActivity.class);
                 startActivity(HistoryActivity);
             }
         });
 
     }
+
     private final class GestureListener extends GestureDetector.SimpleOnGestureListener {
 
         private static final int SWIPE_THRESHOLD = 20;
@@ -108,49 +110,62 @@ public class MainActivity extends AppCompatActivity {
             return result;
         }
     }
+
     public void onSwipeTop() {
-        if (--currentSmileyPosition < 0) currentSmileyPosition = mMoodUIS.length - 1;
+        if (--currentSmileyPosition < 0) currentSmileyPosition = Utils.getMoodsUI().length - 1;
         displayMood();
+        mCurrentMood.setPosition(currentSmileyPosition);
     }
 
     public void onSwipeBottom() {
-        if (++currentSmileyPosition > mMoodUIS.length - 1) currentSmileyPosition = 0;
+        if (++currentSmileyPosition > Utils.getMoodsUI().length - 1) currentSmileyPosition = 0;
         displayMood();
+        mCurrentMood.setPosition(currentSmileyPosition);
 
     }
+
     private void displayMood() {
-        smileyImg.setImageResource(mMoodUIS[currentSmileyPosition].getSmileyResources());
-        mainLayout.setBackgroundColor(getResources().getColor(mMoodUIS[currentSmileyPosition].getColorResources()));
+        smileyImg.setImageResource(Utils.getMoodsUI()[currentSmileyPosition].getSmileyResources());
+        mainLayout.setBackgroundColor(getResources().getColor(Utils.getMoodsUI()[currentSmileyPosition].getColorResources()));
     }
 
-    private void showNoteDialog (){
+    private void showNoteDialog() {
 
-        View parentView = getLayoutInflater().inflate(R.layout.note_comment_layout,null);
+        View parentView = getLayoutInflater().inflate(R.layout.note_comment_layout, null);
         final EditText editText = parentView.findViewById(R.id.user_comment_input);
-        String lastComment = mPreferences.getString("userEntry","");
+        String lastComment = mPreferences.getString("userEntry", "");
         editText.setText(lastComment);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setView(parentView);
         builder.setCancelable(false);
-        builder.setPositiveButton (R.string.note_dialog_ok, new DialogInterface.OnClickListener() {
+        builder.setPositiveButton(R.string.note_dialog_ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(MainActivity.this,editText.getText(), Toast.LENGTH_LONG).show();
-                mPreferences.edit().putString("userEntry",editText.getText().toString()).apply();
+                Toast.makeText(MainActivity.this, editText.getText(), Toast.LENGTH_LONG).show();
+                mPreferences.edit().putString("userEntry", editText.getText().toString()).apply();
                 mCurrentMood.setUserComment(editText.getText().toString());
             }
         });
         builder.setNegativeButton(R.string.note_dialog_cancel, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(MainActivity.this,R.string.toast_cancel,Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, R.string.toast_cancel, Toast.LENGTH_SHORT).show();
             }
         });
         builder.show();
     }
+    private boolean isSameDay(long date1, long date2) {
+        Calendar calendar1 = Calendar.getInstance();
+        Calendar calendar2 = Calendar.getInstance();
 
-    //isSameDay
+        calendar1.setTimeInMillis(date1);
+        calendar2.setTimeInMillis(date2);
+
+        if (calendar1.get(Calendar.YEAR) != calendar2.get(Calendar.YEAR) || calendar1.get(Calendar.DAY_OF_YEAR) != calendar2.get(Calendar.DAY_OF_YEAR))
+            return false;
+        return true;
+    }
 
 
     @Override
@@ -159,22 +174,43 @@ public class MainActivity extends AppCompatActivity {
 
         long now = System.currentTimeMillis();
         mCurrentMood.setDate(now);
+        System.out.println("On Pause : " + mCurrentMood.getUserComment());
 
         String json = mGson.toJson(mCurrentMood);
-        mPreferences.edit().putString("currentMood",json).apply();
+        mPreferences.edit().putString("currentMood", json).apply();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        String json = mPreferences.getString("currentMood","");
-        if (json != null && !json.equals("")){
-            Type type = new TypeToken<MoodHistory>(){}.getType();
-            mCurrentMood = mGson.fromJson(json,type);
-            //Toast.makeText(MainActivity.this,"Nombre de mood sauvegardé " + moodList.size(),Toast.LENGTH_SHORT).show();
+        String json = mPreferences.getString("currentMood", "");
+        if (json != null && !json.equals("")) {
+            Type type = new TypeToken<MoodHistory>() {
+            }.getType();
+            mCurrentMood = mGson.fromJson(json, type);
         }
+        String moodListJson = mPreferences.getString("moodList", "");
+        if (moodListJson != null && !moodListJson.equals("")) {
+            Type listType = new TypeToken<ArrayList<MoodHistory>>() {
+            }.getType();
+            moodList = mGson.fromJson(moodListJson, listType);
+        }
+        long now = System.currentTimeMillis();
+        System.out.println("Now = " + now);
+        System.out.println("Mood date = " + mCurrentMood.getDate());
+        if (!isSameDay(mCurrentMood.getDate(),now)){
+            moodList.add(mCurrentMood);
+            System.out.println("voici le commentaire écrit " + mCurrentMood.getUserComment());
+            String listJson = mGson.toJson(moodList);
+            mPreferences.edit().putString("moodList",listJson).apply();
+            mCurrentMood = new MoodHistory();
 
-
+            while (moodList.size() > 7){
+                moodList.remove(0);
+            }
+            Toast.makeText(MainActivity.this,"Nombre de mood sauvegardé " + moodList.size(),Toast.LENGTH_SHORT).show();
+        }
     }
 }
+

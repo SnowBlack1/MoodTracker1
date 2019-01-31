@@ -1,7 +1,9 @@
-package com.varvoux.aurelie.moodtracker;
+package com.varvoux.aurelie.moodtracker.controller;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+
+import com.varvoux.aurelie.moodtracker.R;
 
 public class HistoryActivity extends AppCompatActivity {
 
