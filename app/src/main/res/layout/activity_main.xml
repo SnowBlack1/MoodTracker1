@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -13,7 +12,8 @@
         android:layout_width="250dp"
         android:layout_height="250dp"
         android:layout_centerInParent="true"
-        android:src="@drawable/smiley_happy" />
+        android:src="@drawable/smiley_happy"
+        tools:ignore="ContentDescription" />
 
     <ImageButton
         android:id="@+id/note_img"
@@ -23,7 +23,18 @@
         android:layout_marginLeft="20dp"
         android:layout_marginBottom="20dp"
         android:background="@android:color/transparent"
-        android:src="@drawable/ic_note_add_black" />
+        android:src="@drawable/ic_note_add_black"
+        tools:ignore="ContentDescription" />
+
+    <ImageButton
+        android:id="@+id/share_icon"
+        android:src="@drawable/share_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="20dp"
+        android:background="@android:color/transparent" />
 
     <ImageButton
         android:id="@+id/history_img"
@@ -34,7 +45,10 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
         android:layout_marginRight="20dp"
-        android:layout_marginBottom="20dp"/>
+        android:layout_marginBottom="20dp"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="20dp"
+        tools:ignore="ContentDescription" />
 
 
 

@@ -16,16 +16,16 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
-
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.varvoux.aurelie.moodtracker.R;
-import com.varvoux.aurelie.moodtracker.Utils.Utils;
+import com.varvoux.aurelie.moodtracker.model.Constants;
+import com.varvoux.aurelie.moodtracker.utils.Utils;
 import com.varvoux.aurelie.moodtracker.model.MoodHistory;
-
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Calendar;
+
 
 
 public class MainActivity extends AppCompatActivity {
@@ -35,11 +35,10 @@ public class MainActivity extends AppCompatActivity {
     private GestureDetector mGestureDetector;
     private SharedPreferences mPreferences;
     private MoodHistory mCurrentMood;
-    private Gson mGson = new Gson();
+    private Gson gson = new Gson();
     private ArrayList<MoodHistory> moodList = new ArrayList<>();
+    int currentSmileyPosition = Constants.DEFAULT_MOOD;
 
-
-    int currentSmileyPosition = 3;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -52,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
         final ImageButton noteBtn = findViewById(R.id.note_img);
         smileyImg = findViewById(R.id.smiley_img);
         ImageButton historyBtn = findViewById(R.id.history_img);
+        ImageButton shareIcon = findViewById(R.id.share_icon);
         mainLayout = findViewById(R.id.main_layout);
 
         mGestureDetector = new GestureDetector(this, new GestureListener());
@@ -79,6 +79,66 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        shareIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                shareMood();
+            }
+        });
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        String json = mPreferences.getString(Constants.CURRENT_MOOD_KEY, "");
+        if (json != null && !json.equals("")) {
+            Type type = new TypeToken<MoodHistory>() {
+            }.getType();
+            mCurrentMood = gson.fromJson(json, type);
+            currentSmileyPosition = mCurrentMood.getPosition();
+            displayMood();
+        }
+        String moodListJson = mPreferences.getString(Constants.MOOD_LIST_KEY, "");
+        if (moodListJson != null && !moodListJson.equals("")) {
+            Type listType = new TypeToken<ArrayList<MoodHistory>>() {
+            }.getType();
+            moodList = gson.fromJson(moodListJson, listType);
+        }
+        long now = System.currentTimeMillis();
+
+        if (!isSameDay(mCurrentMood.getDate(), now)) {
+            moodList.add(mCurrentMood);
+
+            while (moodList.size() > 7) {
+                moodList.remove(0);
+            }
+
+            String listJson = gson.toJson(moodList);
+            mPreferences.edit().putString(Constants.MOOD_LIST_KEY, listJson).apply();
+            mCurrentMood = new MoodHistory();
+
+            currentSmileyPosition = mCurrentMood.getPosition();
+            displayMood();
+
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        long now = System.currentTimeMillis();
+        mCurrentMood.setDate(now);
+
+        String json = gson.toJson(mCurrentMood);
+        mPreferences.edit().putString(Constants.CURRENT_MOOD_KEY, json).apply();
+    }
+
+    private void displayMood() {
+        smileyImg.setImageResource(Utils.moodsUITab[currentSmileyPosition].getSmileyResources());
+        mainLayout.setBackgroundColor(getResources().getColor(Utils.moodsUITab[currentSmileyPosition].getColorResources()));
     }
 
     private final class GestureListener extends GestureDetector.SimpleOnGestureListener {
@@ -111,29 +171,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void onSwipeTop() {
-        if (--currentSmileyPosition < 0) currentSmileyPosition = Utils.getMoodsUI().length - 1;
+    public void onSwipeTop() { //When the user swipe top, the mood is more sad/sadder
+        if (--currentSmileyPosition < 0) currentSmileyPosition = Utils.moodsUITab.length - 1;
         displayMood();
         mCurrentMood.setPosition(currentSmileyPosition);
     }
 
-    public void onSwipeBottom() {
-        if (++currentSmileyPosition > Utils.getMoodsUI().length - 1) currentSmileyPosition = 0;
+    public void onSwipeBottom() { // Moods are happier when the user swipe down
+        if (++currentSmileyPosition > Utils.moodsUITab.length - 1) currentSmileyPosition = 0;
         displayMood();
         mCurrentMood.setPosition(currentSmileyPosition);
 
     }
 
-    private void displayMood() {
-        smileyImg.setImageResource(Utils.getMoodsUI()[currentSmileyPosition].getSmileyResources());
-        mainLayout.setBackgroundColor(getResources().getColor(Utils.getMoodsUI()[currentSmileyPosition].getColorResources()));
-    }
-
-    private void showNoteDialog() {
+    private void showNoteDialog() { // When we click on the comment icon, the user can write a comment
 
         View parentView = getLayoutInflater().inflate(R.layout.note_comment_layout, null);
         final EditText editText = parentView.findViewById(R.id.user_comment_input);
-        String lastComment = mPreferences.getString("userEntry", "");
+        String lastComment = mPreferences.getString(Constants.USER_ENTRY_KEY, "");
         editText.setText(lastComment);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -143,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 Toast.makeText(MainActivity.this, editText.getText(), Toast.LENGTH_LONG).show();
-                mPreferences.edit().putString("userEntry", editText.getText().toString()).apply();
+                mPreferences.edit().putString(Constants.USER_ENTRY_KEY, editText.getText().toString()).apply();
                 mCurrentMood.setUserComment(editText.getText().toString());
             }
         });
@@ -155,7 +210,8 @@ public class MainActivity extends AppCompatActivity {
         });
         builder.show();
     }
-    private boolean isSameDay(long date1, long date2) {
+
+    private boolean isSameDay(long date1, long date2) { // This method calculates if two dates in millisec are the same or not
         Calendar calendar1 = Calendar.getInstance();
         Calendar calendar2 = Calendar.getInstance();
 
@@ -167,50 +223,14 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        long now = System.currentTimeMillis();
-        mCurrentMood.setDate(now);
-        System.out.println("On Pause : " + mCurrentMood.getUserComment());
-
-        String json = mGson.toJson(mCurrentMood);
-        mPreferences.edit().putString("currentMood", json).apply();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        String json = mPreferences.getString("currentMood", "");
-        if (json != null && !json.equals("")) {
-            Type type = new TypeToken<MoodHistory>() {
-            }.getType();
-            mCurrentMood = mGson.fromJson(json, type);
-        }
-        String moodListJson = mPreferences.getString("moodList", "");
-        if (moodListJson != null && !moodListJson.equals("")) {
-            Type listType = new TypeToken<ArrayList<MoodHistory>>() {
-            }.getType();
-            moodList = mGson.fromJson(moodListJson, listType);
-        }
-        long now = System.currentTimeMillis();
-        System.out.println("Now = " + now);
-        System.out.println("Mood date = " + mCurrentMood.getDate());
-        if (!isSameDay(mCurrentMood.getDate(),now)){
-            moodList.add(mCurrentMood);
-            System.out.println("voici le commentaire écrit " + mCurrentMood.getUserComment());
-            String listJson = mGson.toJson(moodList);
-            mPreferences.edit().putString("moodList",listJson).apply();
-            mCurrentMood = new MoodHistory();
-
-            while (moodList.size() > 7){
-                moodList.remove(0);
-            }
-            Toast.makeText(MainActivity.this,"Nombre de mood sauvegardé " + moodList.size(),Toast.LENGTH_SHORT).show();
-        }
+    private void shareMood() { // The user can share his day's mood by SMS, Email, Whatsapp, etc.
+        String[] shareMoodTab = getResources().getStringArray(R.array.mood_str);
+        String shareBody = R.string.share_mood_str + " " + shareMoodTab[mCurrentMood.getPosition()];
+        Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+        sharingIntent.setType("text/plain");
+        sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, R.string.share_subject);
+        sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareBody);
+        startActivity(Intent.createChooser(sharingIntent, getString(R.string.share_alert_dialog)));
     }
 }
 

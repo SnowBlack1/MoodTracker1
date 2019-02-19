@@ -4,7 +4,32 @@
     <string name="edit_text_hint">Votre commentaire</string>
     <string name="note_dialog_title">Comment vous sentez-vous? </string>
     <string name="note_dialog_ok">OK</string>
-    <string name="toast_confirm">C\'est bien enregistré!</string>
     <string name="note_dialog_cancel">Annuler</string>
     <string name="toast_cancel">Rien ne s\'est passé, tout va bien!</string>
+    <string name="share_mood_str">Salut ! Je vous partage mon humeur du jour, aujourd\'hui je suis </string>
+    <string name="share_subject">Mood Tracker App</string>
+    <string name="share_alert_dialog">Partagez votre humeur du jour !</string>
+
+    <string name="diff_days_yesterday">Hier</string>
+    <string name="diff_days_case2">Avant-hier</string>
+    <string name="diff_days_case3">Il y a trois jours</string>
+    <string name="diff_days_case4">Il y a quatre jours</string>
+    <string name="diff_days_case5">Il y a cinq jours</string>
+    <string name="diff_days_case6">Il y a six jours</string>
+    <string name="diff_days_week">Il y a une semaine</string>
+    <string name="diff_days_default">Il y a plus d\'une semaine</string>
+
+
+    
+    
+    
+    
+
+    <string-array name="mood_str">
+        <item>triste :(</item>
+        <item>de mauvaise humeur :/</item>
+        <item>d\' humeur normale :|</item>
+        <item>content(e) :)</item>
+        <item>heureux(se) :D</item>
+    </string-array>
 </resources>

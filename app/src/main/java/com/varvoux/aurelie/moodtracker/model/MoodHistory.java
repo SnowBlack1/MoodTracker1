@@ -8,6 +8,7 @@ public class MoodHistory {
 
     public MoodHistory() {
         date = System.currentTimeMillis();
+        mPosition = Constants.DEFAULT_MOOD;
     }
 
     public int getPosition() {
