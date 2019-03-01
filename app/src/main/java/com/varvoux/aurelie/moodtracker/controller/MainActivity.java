@@ -16,29 +16,38 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.varvoux.aurelie.moodtracker.R;
-import com.varvoux.aurelie.moodtracker.model.Constants;
+import com.varvoux.aurelie.moodtracker.utils.Constants;
 import com.varvoux.aurelie.moodtracker.utils.Utils;
 import com.varvoux.aurelie.moodtracker.model.MoodHistory;
+
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Calendar;
 
 
-
+/***
+ * This is the main activity, that is first run and showing the different moods.
+ * Moods can be changed by the user, he has to swipe up or down.
+ * A comment can be made if the user click on the "comment button", located at the bottom left-hand
+ * of the screen.
+ */
 public class MainActivity extends AppCompatActivity {
 
-    private ImageView smileyImg;
-    private RelativeLayout mainLayout;
-    private GestureDetector mGestureDetector;
-    private SharedPreferences mPreferences;
-    private MoodHistory mCurrentMood;
-    private Gson gson = new Gson();
-    private ArrayList<MoodHistory> moodList = new ArrayList<>();
-    int currentSmileyPosition = Constants.DEFAULT_MOOD;
-
+    private ImageView smileyImg; // This is a smiley, at the middle of the screen, which will change
+    //according to moods
+    private RelativeLayout mainLayout; // Dynamic background of main Activity, changing according to
+    //moods
+    private GestureDetector mGestureDetector; // GestureDetector will detect swipes
+    private SharedPreferences mPreferences; // SharedPreferences to save and load history and moods
+    private MoodHistory mCurrentMood; // Current mood displayed
+    private Gson gson = new Gson(); // Gson library allow us to convert Java objects into JSON
+    private ArrayList<MoodHistory> moodList = new ArrayList<>(); // This ArrayList stacks moods
+    //saved by the user
+    private int currentSmileyPosition = Constants.DEFAULT_MOOD; // This is the position of the smiley which
+    // is shown first when the application is launched
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -88,11 +97,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    /*Lifecycle*/
     @Override
     protected void onResume() {
         super.onResume();
 
         String json = mPreferences.getString(Constants.CURRENT_MOOD_KEY, "");
+
         if (json != null && !json.equals("")) {
             Type type = new TypeToken<MoodHistory>() {
             }.getType();
@@ -108,10 +119,10 @@ public class MainActivity extends AppCompatActivity {
         }
         long now = System.currentTimeMillis();
 
-        if (!isSameDay(mCurrentMood.getDate(), now)) {
+        if (!Utils.isSameDay(mCurrentMood.getDate(), now)) { //If it's not the same day, mCurrentMood added to history
             moodList.add(mCurrentMood);
 
-            while (moodList.size() > 7) {
+            while (moodList.size() > Constants.MAX_MOODS) {
                 moodList.remove(0);
             }
 
@@ -121,7 +132,6 @@ public class MainActivity extends AppCompatActivity {
 
             currentSmileyPosition = mCurrentMood.getPosition();
             displayMood();
-
         }
     }
 
@@ -132,15 +142,22 @@ public class MainActivity extends AppCompatActivity {
         long now = System.currentTimeMillis();
         mCurrentMood.setDate(now);
 
+        //Here, we convert mCurrentMood in Json & put it in the Shared Preferences
         String json = gson.toJson(mCurrentMood);
         mPreferences.edit().putString(Constants.CURRENT_MOOD_KEY, json).apply();
     }
 
+    /**
+     * This is a method to change the smiley and the background in terms of the current position
+     */
     private void displayMood() {
-        smileyImg.setImageResource(Utils.moodsUITab[currentSmileyPosition].getSmileyResources());
-        mainLayout.setBackgroundColor(getResources().getColor(Utils.moodsUITab[currentSmileyPosition].getColorResources()));
+        smileyImg.setImageResource(Constants.moodsUITab[currentSmileyPosition].getSmileyResources());
+        mainLayout.setBackgroundColor(getResources().getColor(Constants.moodsUITab[currentSmileyPosition].getColorResources()));
     }
 
+    /**
+     * Gesture
+     */
     private final class GestureListener extends GestureDetector.SimpleOnGestureListener {
 
         private static final int SWIPE_THRESHOLD = 20;
@@ -171,22 +188,34 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void onSwipeTop() { //When the user swipe top, the mood is more sad/sadder
-        if (--currentSmileyPosition < 0) currentSmileyPosition = Utils.moodsUITab.length - 1;
+    /*
+     * Gesture methods
+     */
+
+    /**
+     * When the user swipes top, the mood will be sadder
+     */
+    public void onSwipeTop() {
+        if (--currentSmileyPosition < 0) currentSmileyPosition = Constants.moodsUITab.length - 1;
         displayMood();
         mCurrentMood.setPosition(currentSmileyPosition);
     }
 
-    public void onSwipeBottom() { // Moods are happier when the user swipe down
-        if (++currentSmileyPosition > Utils.moodsUITab.length - 1) currentSmileyPosition = 0;
+    /**
+     * Moods will be happier when user swipes down
+     */
+    public void onSwipeBottom() {
+        if (++currentSmileyPosition > Constants.moodsUITab.length - 1) currentSmileyPosition = 0;
         displayMood();
         mCurrentMood.setPosition(currentSmileyPosition);
-
     }
 
+    /**
+     * We create an AlertDialog to add a comment to mCurrentMood
+     */
     private void showNoteDialog() { // When we click on the comment icon, the user can write a comment
 
-        View parentView = getLayoutInflater().inflate(R.layout.note_comment_layout, null);
+        @SuppressLint("InflateParams") View parentView = getLayoutInflater().inflate(R.layout.note_comment_layout, null);
         final EditText editText = parentView.findViewById(R.id.user_comment_input);
         String lastComment = mPreferences.getString(Constants.USER_ENTRY_KEY, "");
         editText.setText(lastComment);
@@ -211,26 +240,17 @@ public class MainActivity extends AppCompatActivity {
         builder.show();
     }
 
-    private boolean isSameDay(long date1, long date2) { // This method calculates if two dates in millisec are the same or not
-        Calendar calendar1 = Calendar.getInstance();
-        Calendar calendar2 = Calendar.getInstance();
 
-        calendar1.setTimeInMillis(date1);
-        calendar2.setTimeInMillis(date2);
-
-        if (calendar1.get(Calendar.YEAR) != calendar2.get(Calendar.YEAR) || calendar1.get(Calendar.DAY_OF_YEAR) != calendar2.get(Calendar.DAY_OF_YEAR))
-            return false;
-        return true;
-    }
-
-    private void shareMood() { // The user can share his day's mood by SMS, Email, Whatsapp, etc.
+    /**
+     * We can share mCurrentMood (mood and comment) with a Sharing Intent
+     */
+    private void shareMood() { // The user can share his day's mood by SMS, Email, WhatsApp, etc.
         String[] shareMoodTab = getResources().getStringArray(R.array.mood_str);
-        String shareBody = R.string.share_mood_str + " " + shareMoodTab[mCurrentMood.getPosition()];
+        String shareBody = getString(R.string.share_mood_string) + " " + shareMoodTab[mCurrentMood.getPosition()];
         Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
         sharingIntent.setType("text/plain");
-        sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, R.string.share_subject);
+        sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
         sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareBody);
         startActivity(Intent.createChooser(sharingIntent, getString(R.string.share_alert_dialog)));
     }
 }
-

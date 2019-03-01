@@ -1,10 +1,16 @@
 package com.varvoux.aurelie.moodtracker.model;
 
+import com.varvoux.aurelie.moodtracker.utils.Constants;
+
+/**
+ * This class contains all informations needed to save a mood
+ */
+
 public class MoodHistory {
 
-    private int mPosition;
-    private String userComment;
-    private long date;
+    private int mPosition; // Position of the mood
+    private String userComment; // Comment saved by user
+    private long date; //Mood's date
 
     public MoodHistory() {
         date = System.currentTimeMillis();
@@ -33,20 +39,5 @@ public class MoodHistory {
 
     public void setDate(long date) {
         this.date = date;
-    }
-
-    public MoodHistory(int position, String userComment, long date) {
-        mPosition = position;
-        this.userComment = userComment;
-        this.date = date;
-    }
-
-    public MoodHistory(int position, long date) {
-        mPosition = position;
-        this.date = date;
-    }
-
-    public MoodHistory(int position) {
-        mPosition = position;
     }
 }

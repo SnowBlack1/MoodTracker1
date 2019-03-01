@@ -1,14 +1,16 @@
 package com.varvoux.aurelie.moodtracker.model;
 
-public class MoodUI {
-    private int colorResources;
-    private int smileyResources;
-    private int position;
+/**
+ * This class contains all informations to display moods in MainActivity
+ */
 
-    public MoodUI(int colorResources, int smileyResources, int position) {
+public class MoodUI {
+    private int colorResources; //Mood's background color
+    private int smileyResources; //Mood's smiley
+
+    public MoodUI(int colorResources, int smileyResources) {
         this.colorResources = colorResources;
         this.smileyResources = smileyResources;
-        this.position = position;
     }
 
     public int getColorResources() {
@@ -19,8 +21,6 @@ public class MoodUI {
         return smileyResources;
     }
 
-    public int getPosition() {
-        return position;
-    }
 }
+
 
