@@ -122,14 +122,16 @@ public class MainActivity extends AppCompatActivity {
 
         if (!Utils.isSameDay(mCurrentMood.getDate(), now)) { //If it's not the same day, mCurrentMood added to history
             //Prevents the user from saving a previous mood by changing the date in the phone
-            Date lastMoodDate = new Date(moodList.get(moodList.size() - 1).getDate()); //Date of the last mood saved
-            Date currentMoodDate = new Date(mCurrentMood.getDate()); //Date of the current mood
+            if (moodList.size() > 0) {
+                Date lastMoodDate = new Date(moodList.get(moodList.size() - 1).getDate()); //Date of the last mood saved
+                Date currentMoodDate = new Date(mCurrentMood.getDate()); //Date of the current mood
 
-            if (currentMoodDate.before(lastMoodDate)) { //If the currentMood is before the last mood saved,we don't save and reset everything
-                mCurrentMood = new MoodHistory();
-                currentSmileyPosition = mCurrentMood.getPosition();
-                displayMood();
-                return; //no need to continue, we quit
+                if (currentMoodDate.before(lastMoodDate)) { //If the currentMood is before the last mood saved,we don't save and reset everything
+                    mCurrentMood = new MoodHistory();
+                    currentSmileyPosition = mCurrentMood.getPosition();
+                    displayMood();
+                    return; //No need to continue, we quit
+                }
             }
             moodList.add(mCurrentMood);
 

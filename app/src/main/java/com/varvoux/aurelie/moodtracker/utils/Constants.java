@@ -10,7 +10,7 @@ public class Constants {
 
     public static final String CURRENT_MOOD_KEY = "currentMood";//Default position key for SharedPreferences
     public static final String MOOD_LIST_KEY = "moodList"; //Default ArrayList history key for SharedPreferences
-    public static final String USER_ENTRY_KEY = "userEntry"; //Default user comment key for SharedPrefences
+    public static final String USER_ENTRY_KEY = "userEntry"; //Default user comment key for SharedPreferences
 
     // This array contains MoodUI objects to display dynamically smileys and backgrounds
     public static final MoodUI[] moodsUITab = {new MoodUI(R.color.faded_red, R.drawable.smiley_sad),
